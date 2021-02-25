@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.title }} | {% endblock %}
+
+{% block content %}
+    <div id="product_app">
+        <img src="{{ product.image.url }}">
+        <h1 class="title">{{ product.title }}</h1>
+        <h2 class="subtitle"> {{product.price}} </h2>
+
+        {% if product.description %}
+            <p>{{ product.desciption }}</p>
+        {% endif %}
+        <button @click="addToCart({{ product.id }})">Add to Cart</button>
+
+        <article class="message" v-if="showMessage">
+            <div class="message-body">
+                The product was added to the cart!
+            </div>
+        </article>
+    </div>
+{% endblock %}
+
+{% block script %}
+<script>
+    var product_app = new Vue ({
+        el: "#product_app",
+        delimiters: ['[[', ']]'],
+        store: store,
+        data () {
+            return {
+                showMessage: false
+            }
+        },
+        mounted() {
+            console.log('Mounted');
+        },
+        methods: {
+            addToCart(product_id) {
+                var data = {
+                    'product_id': product_id, 
+                    'update': false, 
+                    'quantity': 1
+                };
+
+                fetch('/api/add_to_cart/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(data)
+                })
+                .then((response) => {
+                    this.showMessage = true;
+                    store.commit('increment', 1);
+
+                    setTimeout(() => {
+                        this.showMessage = false
+                    }, 2000);
+                })
+                .catch(function(error) {
+                    console.log('ERROR 2');
+                })
+            }
+        },
+    })
+</script>
+{% endblock %}
